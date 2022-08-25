@@ -168,6 +168,8 @@
 	function base () {
 
 		/* Default Properties */
+		var x0 = 200;
+		var y0 = 300;
 		var svg = void 0;
 		var canvas = void 0;
 		var width = 600;
@@ -184,6 +186,8 @@
 		var creditTag = componentCreditTag();
 		var yAxisLabel = "";
 
+		var charArr = [];
+
 		var dispatch = d3.dispatch("customValueMouseOver", "customValueMouseOut", "customValueClick", "customSeriesMouseOver", "customSeriesMouseOut", "customSeriesClick");
 
 		/**
@@ -192,27 +196,27 @@
 	  * @private
 	  * @param {Array} data - Chart data.
 	  */
-		function init(data) {
+		function init(myChart, data) {
 			canvasW = width - (margin.left + margin.right);
 			canvasH = height - (margin.top + margin.bottom);
 
 			// Init Chart
-			chart.dispatch(dispatch).width(canvasW).height(canvasH);
+			myChart.dispatch(dispatch).width(canvasW).height(canvasH);
 
 			// Init Legend
 			if (legend) {
 				legend.width(150).height(200);
-				chart.width(chart.width() - legend.width());
+				myChart.width(myChart.width() - legend.width());
 			}
 
 			// Init Title
 			if (title) {
 				chartTop = title.height();
-				chart.height(chart.height() - title.height());
+				myChart.height(myChart.height() - title.height());
 			}
 
 			// Init Credit Tag
-			creditTag.text("d3-ez.net").href("http://d3-ez.net");
+			//creditTag.text("d3-ez.net").href("http://d3-ez.net");
 		}
 
 		/**
@@ -225,10 +229,10 @@
 		function my(selection) {
 			// Create SVG element (if it does not exist already)
 			if (!svg) {
-				svg = selection.append("svg").classed(classed, true).attr("width", width).attr("height", height);
+				svg = selection.append("svg").classed(classed, true).attr("width", x0 + width).attr("height", y0 + height);
 
 				canvas = svg.append("g").classed("canvas", true);
-				canvas.append("g").classed("chartbox", true);
+				//canvas.append("g").classed("chartbox", true);
 				canvas.append("g").classed("legendbox", true);
 				canvas.append("g").classed("titlebox", true);
 				canvas.append("g").classed("creditbox", true);
@@ -240,29 +244,38 @@
 			canvas.attr("transform", "translate(" + margin.left + "," + margin.top + ")").attr("width", canvasW).attr("height", canvasH);
 
 			selection.each(function (data) {
-				init(data);
+				console.log('111', charArr.length);
+				for (var k = 0; k < charArr.length; k++) {
+					console.log('222', k);
+					var myChart = charArr[k];
+					var myCls = 'chartbox' + "_" + k;
+					canvas.append("g").classed(myCls, true);
+					init(myChart, data);
 
-				// Chart
-				canvas.select(".chartbox").datum(data).attr("transform", "translate(" + 0 + "," + chartTop + ")").call(chart);
+					// Chart
+					canvas.select("." + myCls).datum(data).attr("transform", "translate(" + 0 + "," + (0 + chartTop) + ")").call(myChart);
 
-				// Legend
-				if (legend && (typeof chart.colorScale === "function" || typeof chart.sizeScale === "function")) {
-					if (typeof chart.colorScale === "function") {
-						legend.colorScale(chart.colorScale());
+					// Legend
+					if (legend && (typeof myChart.colorScale === "function" || typeof myChart.sizeScale === "function")) {
+						if (typeof myChart.colorScale === "function") {
+							legend.colorScale(myChart.colorScale());
+						}
+						if (typeof myChart.sizeScale === "function") {
+							legend.sizeScale(myChart.sizeScale());
+						}
+						canvas.select(".legendbox").attr("transform", "translate(" + (canvasW - legend.width()) + "," + title.height() + ")").call(legend);
 					}
-					if (typeof chart.sizeScale === "function") {
-						legend.sizeScale(chart.sizeScale());
+
+					// Title
+					if (title) {
+						canvas.select(".titlebox").attr("transform", "translate(" + canvasW / 2 + "," + 0 + ")").call(title);
 					}
-					canvas.select(".legendbox").attr("transform", "translate(" + (canvasW - legend.width()) + "," + title.height() + ")").call(legend);
-				}
 
-				// Title
-				if (title) {
-					canvas.select(".titlebox").attr("transform", "translate(" + canvasW / 2 + "," + 0 + ")").call(title);
+					// Credit Tag
+					//canvas.select(".creditbox")
+					//.attr("transform", "translate(" + canvasW + "," + canvasH + ")")
+					//.call(creditTag);
 				}
-
-				// Credit Tag
-				canvas.select(".creditbox").attr("transform", "translate(" + canvasW + "," + canvasH + ")").call(creditTag);
 			});
 		}
 
@@ -299,6 +312,8 @@
 		my.chart = function (_v) {
 			if (!arguments.length) return chart;
 			chart = _v;
+			charArr.push(_v);
+			//charArr.push(_v);
 			return this;
 		};
 
@@ -365,9 +380,747 @@
 	 * d3.ez.palette.diverging(1);
 	 * d3.ez.palette.sequential("#ff0000", 9);
 	 * d3.ez.palette.lumShift(d3.ez.palette.categorical(1), 0.2);
+	 * ve ema, sma dua vao his
+	 * d3.ez.palette.f_log_test();
+	 * d3.ez.palette.f_convertIdxsKeyLevelToIdxsChart(result.tfTrendKeyLevelList, 517, 154, 154);
 	 */
+	var extentContext = {};
 	var palette = {
-			f_normalize_tf: function f_normalize_tf(data) {
+			f_log_test: function f_log_test(iData) {
+					console.log('111', iData);
+			},
+			f_init_global_var: function f_init_global_var(propName, propVal) {
+					console.log('f_init_global_var', 'propName ' + propName);
+					try {
+							extentContext.isInit = true;
+							extentContext['' + propName] = propVal;
+					} catch (e) {
+							console.log(e);
+							extentContext = { 'isInit': true };
+					}
+					console.log('f_init_global_var', extentContext);
+			},
+			f_GetIdxResizeLen_idxCurrentNoneZero: function f_GetIdxResizeLen_idxCurrentNoneZero(idxFrom, lenFrom, lenTo) {
+					return idxFrom - (lenFrom - lenTo);
+			},
+			f_convertIdxBuffToIdxChart: function f_convertIdxBuffToIdxChart(chartLen, idx) {
+					return chartLen - idx - 1;
+			},
+			f_convertIdxsBuffToIdxsChart: function f_convertIdxsBuffToIdxsChart(chartLen, idxs) {
+					var that = this;
+					var arr = idxs.map(function (val) {
+							return that.f_convertIdxBuffToIdxChart(chartLen, val);
+					});
+					console.log(arr);
+					return arr;
+			},
+			f_convertIdxsKeyLevelToIdxsChart: function f_convertIdxsKeyLevelToIdxsChart(keyLevelList, lenFrom, lenTo, chartLen) {
+					var that = this;
+					var idxs = keyLevelList.map(function (val) {
+							return that.f_GetIdxResizeLen_idxCurrentNoneZero(val.idxs[0], lenFrom, lenTo);
+					}).map(function (val) {
+							return that.f_convertIdxBuffToIdxChart(chartLen, val);
+					});
+					console.log(idxs);
+			},
+
+			f_ema: function f_ema(outBuff, idxCurrent, propHistory, values, buffLen, numOfPeriods) {
+					if (buffLen <= 0 || numOfPeriods <= 0
+					//|| (numOfPeriods >= (buffLen + 1))
+					|| !values || !values.length) {
+							return 0;
+					}
+					var sumVal = 0.0;
+					var i = 0;
+					var j = 0;
+					var a = 2 / (numOfPeriods + 1);
+					var valRet = buffLen;
+					var totalOfItems = numOfPeriods;
+					if (idxCurrent == 0) {
+							for (i = buffLen - 1; i >= 0; i--) {
+									sumVal = 0.0;
+									if (numOfPeriods >= buffLen - i) {
+											//proximate less than numOfPeriods
+											totalOfItems = buffLen - i;
+											for (j = 0; j < totalOfItems; j++) {
+													sumVal += values[i + j][propHistory];
+											}
+											outBuff[i] = sumVal / totalOfItems;
+
+											if (i == buffLen - 1) {
+													outBuff[i] = values[i][propHistory];
+											} else {
+													outBuff[i] = a * values[i][propHistory] + (1 - a) * outBuff[i + 1];
+											}
+									} else {
+											outBuff[i] = a * values[i][propHistory] + (1 - a) * outBuff[i + 1];
+									}
+							}
+					} else {
+							for (i = 0; i < buffLen; i++) {
+									sumVal = 0.0;
+									if (i < numOfPeriods - 1) {
+											//proximate less than numOfPeriods
+											totalOfItems = i + 1;
+											for (j = 0; j < totalOfItems; j++) {
+													sumVal += values[i - j][propHistory];
+											}
+											outBuff[i] = sumVal / totalOfItems;
+
+											if (i == 0) {
+													outBuff[i] = values[i][propHistory];
+											} else {
+													outBuff[i] = a * values[i][propHistory] + (1 - a) * outBuff[i - 1];
+											}
+									} else {
+											outBuff[i] = a * values[i][propHistory] + (1 - a) * outBuff[i - 1];
+									}
+							}
+					}
+					return valRet;
+			},
+			f_keyLevel_graph: function f_keyLevel_graph(x0, y0, chart, clsName, x1, data, xScale, yScale) {
+					var that = this;
+					var idxKeyLevel = [];
+					var gClass = chart.select("." + clsName).attr("transform", "translate(" + x0 + "," + y0 + ")").selectAll("." + clsName + "-indicators").data(data.levels);
+					var childClass = gClass.enter().append("path").classed(clsName + "-indicators", true).attr("opacity", function (d, i) {
+							return d.n4 == 0 ? 0.8 : 0.2;
+					}).attr("fill", function (d, i) {
+							return that.f_stroke(d, i);
+					}).attr("stroke", function (d, i) {
+							if (d.idxs && d.idxs.length > 0) {
+									for (var k = 0; k < d.idxs.length; k++) {
+											idxKeyLevel.push({ "n3": d.n3, "n1": d.n1, "n2": d.n2, "n4": d.n4, "idx": d.idxs[k] });
+									}
+							}
+							return that.f_stroke(d, i);
+					})
+					//.attr("stroke-width", (d, i) => { return that.f_strokeWidth(d, i); })
+					.attr("d", function (d, i) {
+							return d3.line()([[0, yScale(d.n1 + that.f_deepKeylevel(d, i))], [x1, yScale(d.n1 + that.f_deepKeylevel(d, i))], [x1, yScale(d.n1 - that.f_deepKeylevel(d, i))], [0, yScale(d.n1 - that.f_deepKeylevel(d, i))]]);
+					}).append("title").text(function (d, i) {
+							return that.f_title(d, i);
+					});
+					console.log('333', idxKeyLevel);
+
+					var candleWidth = 3;
+					var gClass2 = chart.select("." + clsName).attr("transform", "translate(" + x0 + "," + y0 + ")").selectAll("." + clsName + "-indicators-top-bottom").data(idxKeyLevel);
+					var childClassTop = gClass2.enter().append("path").classed(clsName + "-indicators-top-bottom", true).attr("opacity", function (d, i) {
+							return d.n4 == 0 ? 0.6 : 0.6;
+					}).attr("fill", function (d, i) {
+							return that.f_2colors(d, 1 + d.n4);
+					}).attr("stroke", function (d, i) {
+							return that.f_2colors(d, 1 + d.n4);
+					}).attr("stroke-width", function (d, i) {
+							return 2 * candleWidth;
+					}).attr("d", function (d, i) {
+							return d3.line()([[xScale(data.values[d.idx].date) - 3 * candleWidth, yScale(d.n1)], [xScale(data.values[d.idx].date) + 3 * candleWidth, yScale(d.n1)]]);
+					}).append("title").text(function (d, i) {
+							return that.f_title(d, i);
+					});
+			},
+			f_sma_graph: function f_sma_graph(x0, y0, chart, clsName, idx, values, xScale, yScale) {
+					console.log('f_sma_graph', 'clsName ' + clsName + ' idx ' + idx + ' values');
+					//console.log(values);
+					var that = this;
+					var emaClass = chart.select("." + clsName).attr("transform", "translate(" + x0 + "," + y0 + ")").selectAll("." + clsName + "-indicators").data(values);
+					var emaPath = emaClass.enter().append("path").classed(clsName + "-indicators", true).attr("opacity", function (d, i) {
+							return 0.688;
+					}).attr("fill", function (d, i) {
+							return that.f_stroke(d, idx);
+					}).attr("stroke", function (d, i) {
+							return that.f_stroke(d, idx);
+					}).attr("stroke-width", function (d, i) {
+							return 3;
+					}).attr("d", function (d, i) {
+							if (i < values.length - 1) {
+									return d3.line()([[xScale(d.date), yScale(d.val)], [xScale(values[i + 1].date), yScale(values[i + 1].val)]]);
+							}
+					}).append("title").text(function (d, i) {
+							return that.f_title(d, i) + clsName;
+					});
+
+					var emaClassTxt = chart.select("." + clsName).selectAll("." + clsName + "-indicators-label").data([clsName]);
+					var emaPathText = emaClassTxt.enter().append("text").classed(clsName + "-indicators-label", true)
+					//.attr("transform", "rotate(-90)")
+					.attr("x", function (d, i) {
+							return xScale(values[0].date);
+					}).attr("y", function (d, i) {
+							return yScale(values[0].val);
+					}).attr("dy", ".71em").attr("opacity", function (d, i) {
+							return 0.688;
+					}).attr("fill", function (d, i) {
+							return that.f_stroke(d, idx);
+					}).attr("text-anchor", "begin").text(clsName);
+			},
+			f_sma: function f_sma(outBuff, idxCurrent, propHistory, values, buffLen, numOfPeriods) {
+					if (buffLen <= 0 || numOfPeriods <= 0
+					//|| (numOfPeriods >= (buffLen + 1))
+					|| !values || !values.length) {
+							return 0;
+					}
+					//idxCurrent 0: current, bufflen - 1: past
+					//outBuff = [];
+					//buffLen:10, numOfPeriods:5, outBuffLen:6[0,1,..,5]
+					var outBuffLen = buffLen - numOfPeriods + 1;
+					var sumVal = 0.0;
+					var i = 0;
+					var j = 0;
+					var valRet = outBuffLen;
+					valRet = buffLen;
+					var totalOfItems = numOfPeriods;
+					if (idxCurrent == 0) {
+							for (i = buffLen - 1; i >= 0; i--) {
+									sumVal = 0.0;
+									if (numOfPeriods > buffLen - i) {
+											totalOfItems = buffLen - i; //proximate less than numOfPeriods
+									} else {
+											totalOfItems = numOfPeriods;
+									}
+									for (j = 0; j < totalOfItems; j++) {
+											sumVal += values[i + j][propHistory];
+									}
+									outBuff[i] = sumVal / totalOfItems;
+							}
+					} else {
+							for (i = 0; i < buffLen; i++) {
+									sumVal = 0.0;
+									if (i < numOfPeriods - 1) {
+											totalOfItems = i + 1; ////proximate less than numOfPeriods
+									} else {
+											totalOfItems = numOfPeriods;
+									}
+									for (j = 0; j < totalOfItems; j++) {
+											sumVal += values[i - j][propHistory];
+									}
+									outBuff[i] = sumVal / totalOfItems;
+							}
+					}
+					return valRet;
+			},
+			f_isMinLevel: function f_isMinLevel(values, buffLen, i, valPoint, pipValue, pipsDistance, numOfItemAdjacency, numOfIntersection) {
+					var that = this;
+					if (valPoint <= 0.0 || pipValue <= 0.0 || pipsDistance <= 0.0 || numOfItemAdjacency <= 0 || numOfIntersection <= 0 || i < numOfItemAdjacency || i >= buffLen - numOfItemAdjacency || !values || !values.length) {
+							return false;
+					}
+					//idx 0: current, bufflen - 1: past
+					var actualNumOfIntersection = 0;
+					var deep = pipsDistance * pipValue;
+					var isOk = true;
+					var j = 0;
+					var k = 0;
+					var closeOk = false;
+					var minMaxOk = false;
+					for (j = 1; isOk && j <= numOfItemAdjacency; j++) {
+							closeOk = valPoint <= that.f_getLow(values[i - j]) && valPoint <= that.f_getLow(values[i + j]);
+							minMaxOk = valPoint <= values[i - j].low && valPoint <= values[i + j].low;
+							isOk = isOk && (closeOk || minMaxOk); //minimum points
+					}
+					if (isOk) {
+							actualNumOfIntersection = 0;
+							for (k = 0; k < buffLen; k++) {
+									if (values[k].low >= valPoint - deep && values[k].low <= valPoint + deep || // rau nen trong key level
+									that.f_getLow(values[k]) >= valPoint - deep && that.f_getLow(values[k]) <= valPoint + deep //nen giam close trong key level, nen tang open trong key level
+									) {
+													actualNumOfIntersection++;
+											}
+							}
+					}
+					if (isOk && actualNumOfIntersection >= numOfIntersection) {
+							return true;
+					}
+					return false;
+			},
+			f_isMaxLevel: function f_isMaxLevel(values, buffLen, i, valPoint, pipValue, pipsDistance, numOfItemAdjacency, numOfIntersection) {
+					var that = this;
+					if (valPoint <= 0.0 || pipValue <= 0.0 || pipsDistance <= 0.0 || numOfItemAdjacency <= 0 || numOfIntersection <= 0 || i < numOfItemAdjacency || i >= buffLen - numOfItemAdjacency || !values || !values.length) {
+							return false;
+					}
+					//idx 0: current, bufflen - 1: past
+					var actualNumOfIntersection = 0;
+					var deep = pipsDistance * pipValue;
+					var isOk = true;
+					var j = 0;
+					var k = 0;
+					var closeOk = false;
+					var minMaxOk = false;
+					for (j = 1; isOk && j <= numOfItemAdjacency; j++) {
+							closeOk = valPoint >= that.f_getHigh(values[i - j]) && valPoint >= that.f_getHigh(values[i + j]);
+							minMaxOk = valPoint >= values[i - j].high && valPoint >= values[i + j].high;
+							isOk = isOk && (closeOk || minMaxOk); //maximum points
+					}
+					if (isOk) {
+							actualNumOfIntersection = 0;
+							for (k = 0; k < buffLen; k++) {
+									if (values[k].high >= valPoint - deep && values[k].high <= valPoint + deep || // rau nen trong key level
+									that.f_getHigh(values[k]) >= valPoint - deep && that.f_getHigh(values[k]) <= valPoint + deep //nen giam close trong key level, nen tang open trong key level
+									) {
+													actualNumOfIntersection++;
+											}
+							}
+					}
+					if (isOk && actualNumOfIntersection >= numOfIntersection) {
+							return true;
+					}
+					return false;
+			},
+			f_getLow: function f_getLow(elem) {
+					if (elem.close <= elem.open) {
+							//nen giam
+							return elem.close;
+					}
+					return elem.open;
+			},
+			f_getHigh: function f_getHigh(elem) {
+					if (elem.close <= elem.open) {
+							//nen giam
+							return elem.open;
+					}
+					return elem.close;
+			},
+			f_isCandleTopUp_idxCurrentNoneZero: function f_isCandleTopUp_idxCurrentNoneZero(refResult, outLevel, fromPast, toFuture) {
+					console.log('f_isCandleTopUp_idxCurrentNoneZero', 'fromPast ' + fromPast + ' toFuture ' + toFuture);
+					refResult.n1 = 0;
+					refResult.n2 = -1;
+					if (fromPast >= toFuture) {
+							return false;
+					}
+					var levels = outLevel.filter(function (item, idx) {
+							return item.n4 == 1 && item.idxs[0] >= fromPast && item.idxs[0] <= toFuture;
+					});
+					if (!(levels.length > 1)) {
+							return false;
+					}
+					levels.sort(function (a, b) {
+							//asc
+							return a.n1 - b.n1;
+					});
+					var i = 0;
+					for (i = 0; i < levels.length - 1; i++) {
+							if (levels[i].idxs[0] > levels[i + 1].idxs[0]) {
+									return false;
+							} else {
+									refResult.n2 = levels[i].idxs[0];
+							}
+					}
+					refResult.n1 = levels.length;
+					return true;
+			},
+			f_isCandleBottomUp_idxCurrentNoneZero: function f_isCandleBottomUp_idxCurrentNoneZero(refResult, outLevel, fromPast, toFuture) {
+					console.log('f_isCandleBottomUp_idxCurrentNoneZero', 'fromPast ' + fromPast + ' toFuture ' + toFuture);
+					refResult.n1 = 0;
+					refResult.n2 = -1;
+					if (fromPast >= toFuture) {
+							return false;
+					}
+					var levels = outLevel.filter(function (item, idx) {
+							return item.n4 == 0 && item.idxs[0] >= fromPast && item.idxs[0] <= toFuture;
+					});
+					if (!(levels.length > 1)) {
+							return false;
+					}
+					levels.sort(function (a, b) {
+							//asc
+							return a.n1 - b.n1;
+					});
+					var i = 0;
+					for (i = 0; i < levels.length - 1; i++) {
+							if (levels[i].idxs[0] > levels[i + 1].idxs[0]) {
+									return false;
+							} else {
+									refResult.n2 = levels[i].idxs[0];
+							}
+					}
+					refResult.n1 = levels.length;
+					return true;
+			},
+			f_isCandleTopDown_idxCurrentNoneZero: function f_isCandleTopDown_idxCurrentNoneZero(refResult, outLevel, fromPast, toFuture) {
+					console.log('f_isCandleTopDown_idxCurrentNoneZero', 'fromPast ' + fromPast + ' toFuture ' + toFuture);
+					refResult.n1 = 0;
+					refResult.n2 = -1;
+					if (fromPast >= toFuture) {
+							return false;
+					}
+					var levels = outLevel.filter(function (item, idx) {
+							return item.n4 == 1 && item.idxs[0] >= fromPast && item.idxs[0] <= toFuture;
+					});
+					if (!(levels.length > 1)) {
+							return false;
+					}
+					levels.sort(function (a, b) {
+							//desc
+							return -1 * (a.n1 - b.n1);
+					});
+					var i = 0;
+					for (i = 0; i < levels.length - 1; i++) {
+							if (levels[i].idxs[0] > levels[i + 1].idxs[0]) {
+									return false;
+							} else {
+									refResult.n2 = levels[i].idxs[0];
+							}
+					}
+					refResult.n1 = levels.length;
+					return true;
+			},
+			f_isCandleBottomDown_idxCurrentNoneZero: function f_isCandleBottomDown_idxCurrentNoneZero(refResult, outLevel, fromPast, toFuture) {
+					console.log('f_isCandleBottomDown_idxCurrentNoneZero', 'fromPast ' + fromPast + ' toFuture ' + toFuture);
+					refResult.n1 = 0;
+					refResult.n2 = -1;
+					if (fromPast >= toFuture) {
+							return false;
+					}
+					var levels = outLevel.filter(function (item, idx) {
+							return item.n4 == 0 && item.idxs[0] >= fromPast && item.idxs[0] <= toFuture;
+					});
+					if (!(levels.length > 1)) {
+							return false;
+					}
+					levels.sort(function (a, b) {
+							//desc
+							return -1 * (a.n1 - b.n1);
+					});
+					var i = 0;
+					for (i = 0; i < levels.length - 1; i++) {
+							if (levels[i].idxs[0] > levels[i + 1].idxs[0]) {
+									return false;
+							} else {
+									refResult.n2 = levels[i].idxs[0];
+							}
+					}
+					refResult.n1 = levels.length;
+					return true;
+			},
+			f_isCandleTopUp_idxCurrentZero: function f_isCandleTopUp_idxCurrentZero(refResult, outLevel, fromPast, toFuture) {
+					console.log('f_isCandleTopUp_idxCurrentZero', 'fromPast ' + fromPast + ' toFuture ' + toFuture);
+					refResult.n1 = 0;
+					refResult.n2 = -1;
+					if (fromPast <= toFuture) {
+							return false;
+					}
+					var levels = outLevel.filter(function (item, idx) {
+							return item.n4 == 1 && item.idxs[0] <= fromPast && item.idxs[0] >= toFuture;
+					});
+					if (!(levels.length > 1)) {
+							return false;
+					}
+					levels.sort(function (a, b) {
+							//asc
+							return a.n1 - b.n1;
+					});
+					var i = 0;
+					for (i = 0; i < levels.length - 1; i++) {
+							if (levels[i].idxs[0] < levels[i + 1].idxs[0]) {
+									return false;
+							} else {
+									refResult.n2 = levels[i].idxs[0];
+							}
+					}
+					refResult.n1 = levels.length;
+					return true;
+			},
+			f_isCandleBottomUp_idxCurrentZero: function f_isCandleBottomUp_idxCurrentZero(refResult, outLevel, fromPast, toFuture) {
+					console.log('f_isCandleBottomUp_idxCurrentZero', 'fromPast ' + fromPast + ' toFuture ' + toFuture);
+					refResult.n1 = 0;
+					refResult.n2 = -1;
+					if (fromPast <= toFuture) {
+							return false;
+					}
+					var levels = outLevel.filter(function (item, idx) {
+							return item.n4 == 0 && item.idxs[0] <= fromPast && item.idxs[0] >= toFuture;
+					});
+					if (!(levels.length > 1)) {
+							return false;
+					}
+					levels.sort(function (a, b) {
+							//asc
+							return a.n1 - b.n1;
+					});
+					var i = 0;
+					for (i = 0; i < levels.length - 1; i++) {
+							if (levels[i].idxs[0] < levels[i + 1].idxs[0]) {
+									return false;
+							} else {
+									refResult.n2 = levels[i].idxs[0];
+							}
+					}
+					refResult.n1 = levels.length;
+					return true;
+			},
+			f_isCandleTopDown_idxCurrentZero: function f_isCandleTopDown_idxCurrentZero(refResult, outLevel, fromPast, toFuture) {
+					console.log('f_isCandleTopDown_idxCurrentZero', 'fromPast ' + fromPast + ' toFuture ' + toFuture);
+					refResult.n1 = 0;
+					refResult.n2 = -1;
+					if (fromPast <= toFuture) {
+							return false;
+					}
+					var levels = outLevel.filter(function (item, idx) {
+							return item.n4 == 1 && item.idxs[0] <= fromPast && item.idxs[0] >= toFuture;
+					});
+					if (!(levels.length > 1)) {
+							return false;
+					}
+					levels.sort(function (a, b) {
+							//desc
+							return -1 * (a.n1 - b.n1);
+					});
+					var i = 0;
+					for (i = 0; i < levels.length - 1; i++) {
+							if (levels[i].idxs[0] < levels[i + 1].idxs[0]) {
+									return false;
+							} else {
+									refResult.n2 = levels[i].idxs[0];
+							}
+					}
+					refResult.n1 = levels.length;
+					return true;
+			},
+			f_isCandleBottomDown_idxCurrentZero: function f_isCandleBottomDown_idxCurrentZero(refResult, outLevel, fromPast, toFuture) {
+					console.log('f_isCandleBottomDown_idxCurrentZero', 'fromPast ' + fromPast + ' toFuture ' + toFuture);
+					refResult.n1 = 0;
+					refResult.n2 = -1;
+					if (fromPast <= toFuture) {
+							return false;
+					}
+					var levels = outLevel.filter(function (item, idx) {
+							return item.n4 == 0 && item.idxs[0] <= fromPast && item.idxs[0] >= toFuture;
+					});
+					if (!(levels.length > 1)) {
+							return false;
+					}
+					levels.sort(function (a, b) {
+							//desc
+							return -1 * (a.n1 - b.n1);
+					});
+					var i = 0;
+					for (i = 0; i < levels.length - 1; i++) {
+							if (levels[i].idxs[0] < levels[i + 1].idxs[0]) {
+									return false;
+							} else {
+									refResult.n2 = levels[i].idxs[0];
+							}
+					}
+					refResult.n1 = levels.length;
+
+					return true;
+			},
+			f_isUptrend_idxCurrentZero: function f_isUptrend_idxCurrentZero(refResult, sortLevels, fromPastIn, toFuture) {
+					var that = this;
+					console.log('f_isUptrend_idxCurrentZero', 'fromPast ' + fromPastIn + ' toFuture ' + toFuture);
+					var fromPast = fromPastIn;
+					var isOK = that.f_isCandleTopUp_idxCurrentZero(refResult, sortLevels, fromPast, toFuture);
+					if (!isOk && fromPastIn == 0) {
+							while (!isOk && fromPast + 1 > toFuture) {
+									refResult.n1 = 0;
+									refResult.n2 = -1;
+									fromPast++;
+									isOk = that.f_isCandleTopUp_idxCurrentZero(refResult, sortLevels, fromPast, toFuture);
+							}
+							isOk = false;
+					}
+					//isOK = isOK && that.f_isCandleBottomUp_idxCurrentZero(refResult, sortLevels, fromPast, toFuture);
+					return isOK;
+			},
+			f_isDowntrend_idxCurrentZero: function f_isDowntrend_idxCurrentZero(refResult, sortLevels, fromPastIn, toFuture) {
+					var that = this;
+					console.log('f_isDowntrend_idxCurrentZero', 'fromPast ' + fromPastIn + ' toFuture ' + toFuture);
+					var fromPast = fromPastIn;
+					var isOK = that.f_isCandleBottomDown_idxCurrentZero(refResult, sortLevels, fromPast, toFuture);
+					if (!isOk && fromPastIn == 0) {
+							while (!isOk && fromPast + 1 > toFuture) {
+									refResult.n1 = 0;
+									refResult.n2 = -1;
+									fromPast++;
+									isOk = that.f_isCandleBottomDown_idxCurrentZero(refResult, sortLevels, fromPast, toFuture);
+							}
+							isOk = false;
+					}
+					//isOK = isOK && that.f_isCandleTopDown_idxCurrentZero(refResult, sortLevels, fromPast, toFuture);
+					return isOK;
+			},
+			f_checkSideWay_idxCurrentZero: function f_checkSideWay_idxCurrentZero(values, keylevelMin, keylevelMax, fromPast, toFuture) {
+					var that = this;
+					//toFuture:fixed, checking fromPast -> toFuture, do not beak the keyLevel
+					console.log('f_checkSideWay_idxCurrentZero', 'keylevelMin ' + keylevelMin + ' keylevelMax ' + keylevelMax + ' fromPast ' + fromPast + '  toFuture ' + toFuture);
+					if (!values || !values.length || fromPast < toFuture || keylevelMin <= 0 || keylevelMax <= 0 || keylevelMin >= keylevelMax) {
+							return { n1: 0, n2: -1 };
+					}
+					var idxs = [];
+					var i, hitLevel;
+					hitLevel = 0;
+					var firstHit = -1;
+					for (i = toFuture; i <= fromPast && i < values.length; i++) {
+							if (that.f_getLow(values[i]) >= keylevelMin && that.f_getHigh(values[i]) <= keylevelMax) {
+									hitLevel++;
+									firstHit = i; //past
+									idxs.push(i);
+							} else {
+									break;
+							}
+					}
+					return { n1: hitLevel, n2: firstHit, n3: idxs };
+			},
+			f_checkRetestUp_idxCurrentZero: function f_checkRetestUp_idxCurrentZero(values, keylevel, deep, fromPast, toFuture) {
+					var that = this;
+					//toFuture:fixed, checking fromPast -> toFuture, do not beak the keyLevel
+					console.log('f_checkRetestUp_idxCurrentZero', 'keylevel ' + keylevel + ' deep ' + deep + ' fromPast ' + fromPast + '  toFuture ' + toFuture);
+					if (!values || !values.length || fromPast < toFuture || keylevel <= 0 || deep <= 0) {
+							return { n1: 0, n2: -1 };
+					}
+					var idxs = [];
+					var i, valPoint, hitLevel;
+					hitLevel = 0;
+					var keylevelMin = keylevel - deep;
+					var keylevelMax = keylevel + deep;
+					var firstHit = -1;
+					var firstViolate = -1;
+					var result = {};
+					for (i = toFuture; i <= fromPast && i < values.length; i++) {
+							valPoint = that.f_getLow(values[i]);
+							if (valPoint < keylevelMin) {
+									result.n4 = 1; //violate
+									firstViolate = i;
+									break;
+							}
+							if (valPoint >= keylevelMin && valPoint <= keylevelMax) {
+									hitLevel++;
+									firstHit = i; //past
+									idxs.push(i);
+							}
+					}
+					result.n1 = hitLevel;
+					result.n2 = firstHit;
+					result.n3 = firstViolate;
+					result.idxs = idxs;
+					return result;
+			},
+			f_checkRetestDown_idxCurrentZero: function f_checkRetestDown_idxCurrentZero(values, keylevel, deep, fromPast, toFuture) {
+					var that = this;
+					//toFuture:fixed, checking fromPast -> toFuture, do not beak the keyLevel
+					console.log('f_checkRetestDown_idxCurrentZero', 'keylevel ' + keylevel + ' deep ' + deep + ' fromPast ' + fromPast + '  toFuture ' + toFuture);
+					if (!values || !values.length || fromPast < toFuture || keylevel <= 0 || deep <= 0) {
+							return { n1: 0, n2: -1 };
+					}
+					var idxs = [];
+					var i, valPoint, hitLevel;
+					hitLevel = 0;
+					var keylevelMin = keylevel - deep;
+					var keylevelMax = keylevel + deep;
+					var firstHit = -1;
+					var firstViolate = -1;
+					var result = {};
+					for (i = toFuture; i <= fromPast && i < values.length; i++) {
+							valPoint = that.f_getHigh(values[i]);
+							if (valPoint > keylevelMax) {
+									result.n4 = 1; //violate
+									firstViolate = i; //violate
+									break;
+							}
+							if (valPoint >= keylevelMin && valPoint <= keylevelMax) {
+									hitLevel++;
+									firstHit = i; //past
+									idxs.push(i);
+							}
+					}
+					result.n1 = hitLevel;
+					result.n2 = firstHit;
+					result.n3 = firstViolate;
+					result.idxs = idxs;
+					return result;
+			},
+			f_findCriticalPoint_idxCurrentZero: function f_findCriticalPoint_idxCurrentZero(values, pipValue, pipsDistance, numOfItemAdjacency, numOfIntersection, lowHigh) {
+					var that = this;
+					//idx 0: current, bufflen - 1: past
+					//pipValue = 0.0001;
+					//pipsDistance = 5.0;
+					//numOfItemAdjacency = 5;
+					//numOfIntersection = 3;
+					console.log('f_findCriticalPoint_idxCurrentZero', 'pipValue ' + pipValue + ' pipsDistance ' + pipsDistance + ' numOfItemAdjacency ' + numOfItemAdjacency + ' numOfIntersection ' + numOfIntersection + ' lowHigh ' + lowHigh);
+					var deep = pipsDistance * pipValue;
+					var buffLen = values.length;
+					var isOk = true;
+					var dictBottom = new Map();
+					var dictTop = new Map();
+					var valPoint = 0.0;
+					var i = 0;
+					var getLow = (lowHigh & 1) == 1;
+					var getHigh = (lowHigh & 2) == 2;
+					//uu tien hien tai idx: 0
+					for (i = numOfItemAdjacency; getLow && i < buffLen - numOfItemAdjacency; i++) {
+							isOk = true;
+							valPoint = values[i].low; //low, hoac phai xet la nen giam thi lay close, nen tang thi lay open
+							isOk = isOk && that.f_isMinLevel(values, buffLen, i, valPoint, pipValue, pipsDistance, numOfItemAdjacency, numOfIntersection);
+							if (isOk) {
+									dictBottom.set('' + i, valPoint);
+							}
+
+							isOk = true;
+							valPoint = that.f_getLow(values[i]); //low, hoac phai xet la nen giam thi lay close, nen tang thi lay open
+							isOk = isOk && that.f_isMinLevel(values, buffLen, i, valPoint, pipValue, pipsDistance, numOfItemAdjacency, numOfIntersection);
+							if (isOk) {
+									dictBottom.set('' + i, valPoint);
+							}
+					}
+
+					for (i = numOfItemAdjacency; getHigh && i < buffLen - numOfItemAdjacency; i++) {
+							isOk = true;
+							valPoint = values[i].high; //high, hoac phai xet la nen giam thi lay open, nen tang thi lay close
+							isOk = isOk && that.f_isMaxLevel(values, buffLen, i, valPoint, pipValue, pipsDistance, numOfItemAdjacency, numOfIntersection);
+							if (isOk) {
+									dictTop.set('' + i, valPoint);
+							}
+
+							isOk = true;
+							valPoint = that.f_getHigh(values[i]); //high, hoac phai xet la nen giam thi lay open, nen tang thi lay close
+							isOk = isOk && that.f_isMaxLevel(values, buffLen, i, valPoint, pipValue, pipsDistance, numOfItemAdjacency, numOfIntersection);
+							if (isOk) {
+									dictTop.set('' + i, valPoint);
+							}
+					}
+					var sortLevels = [];
+					var levelsBottom = [];
+					if (dictBottom.size > 0) {
+							dictBottom.forEach(function (val, key) {
+									levelsBottom.push({ "n3": val + deep, "n1": val, "n2": val - deep, "n4": 0, "idxs": [parseInt(key)] });
+							});
+							levelsBottom.sort(function (a, b) {
+									//asc
+									return a.n1 - b.n1;
+							});
+							sortLevels.push(levelsBottom[0]);
+							for (i = 1; i < dictBottom.size; i++) {
+									if (levelsBottom[i].n1 >= sortLevels[sortLevels.length - 1].n1 + 2 * deep) {
+											sortLevels.push(levelsBottom[i]);
+									}
+							}
+					}
+					var levelsTop = [];
+					if (dictTop.size > 0) {
+							dictTop.forEach(function (val, key) {
+									levelsTop.push({ "n3": val + deep, "n1": val, "n2": val - deep, "n4": 1, "idxs": [parseInt(key)] });
+							});
+							levelsTop.sort(function (a, b) {
+									//asc
+									return a.n1 - b.n1;
+							});
+							sortLevels.push(levelsTop[0]);
+							for (i = 1; i < dictTop.size; i++) {
+									if (levelsTop[i].n1 >= sortLevels[sortLevels.length - 1].n1 + 2 * deep) {
+											sortLevels.push(levelsTop[i]);
+									}
+							}
+					}
+					return sortLevels;
+			},
+			f_findCriticalPoint: function f_findCriticalPoint(data, pipValue, pipsDistance, numOfItemAdjacency, numOfIntersection, lowHigh) {
+					var that = this;
+					console.log('f_findCriticalPoint', 'pipValue ' + pipValue + ' pipsDistance ' + pipsDistance + ' numOfItemAdjacency ' + numOfItemAdjacency + ' numOfIntersection ' + numOfIntersection + ' lowHigh ' + lowHigh);
+					var sortLevels = that.f_findCriticalPoint_idxCurrentZero(data.values, pipValue, pipsDistance, numOfItemAdjacency, numOfIntersection, lowHigh);
+					data.levels = sortLevels;
+					//console.log('ddd', data.levels);
+			},
+			f_normalize_tf: function f_normalize_tf(data, arg) {
+					var that = this;
+					console.log('f_normalize_tf', 'arg ' + arg);
 					var PERIOD_MN1_IN_MILLISECONDS = 2419200000; //4 weeks
 					var PERIOD_W1_IN_MILLISECONDS = 604800000;
 					var PERIOD_D1_IN_MILLISECONDS = 86400000;
@@ -412,7 +1165,128 @@
 									data.values[i].date = new Date(data.values[0].date - i * tf);
 							}
 					});
+					if (that.f_config(data).isUseJs_f_findCriticalPoint == true) {
+							var getLH = 3;
+							that.f_findCriticalPoint(data, 0.0001, 5.0, 5, 3, getLH);
+							var updown = that.f_isCandleTopDown_idxCurrentZero(data.levels, 229, 167);
+							console.log('333', updown);
+					} else {
+							if (data["keyLevel2"] && data["keyLevel2"].length) {
+									var numInterval = 250;
+									var isIdxCurrentZero = true;
+									data.levels = data["keyLevel2"];
+									for (var i = 0; !isIdxCurrentZero && i < data.levels.length; i++) {
+											data.levels[i].idxs[0] = numInterval - 1 - data.levels[i].idxs[0];
+									}
+							}
+					}
+					if (arg == 'candlestickChart') {
+							data.indicators = [];
+							//that.f_normalize_sma(data, "close", 200);
+							//that.f_normalize_ema(data, "close", 200);
+							//that.f_normalize_test(data, "ma200Code");
+							that.f_build_indicators(data, 'listOfIndicators');
+							//build indicators here
+
+							data.idxsBoldBuild = [];
+							that.f_build_idxs_color(data, 'idxsBold');
+					}
+					var retestUp = that.f_checkRetestUp_idxCurrentZero(data.values, 1.2201, 0.0005, 20, 0);
+					//console.log('444', retestUp);
 					return tf;
+			},
+			f_config: function f_config(data) {
+					return { isUseJs_f_findCriticalPoint: false };
+			},
+			f_normalize_test: function f_normalize_test(data, propHistory) {
+					var maLen = data['' + propHistory].length;
+					if (maLen > 0) {
+							if (maLen > data.values.length) {
+									maLen = data.values.length;
+							}
+							var smaObj = [];
+							data.indicators.push(propHistory + 'test');
+							for (var k = 0; k < maLen; k++) {
+									smaObj.push({ date: data.values[k].date, val: data['' + propHistory][k] });
+							}
+							data[propHistory + 'test'] = smaObj;
+					}
+			},
+			f_normalize_sma: function f_normalize_sma(data, propHistory, numOfPeriods) {
+					var that = this;
+					//var idxCurrent = data.values.length - 1;
+					var idxCurrent = 0;
+					var sma = [];
+					var maLen = that.f_sma(sma, idxCurrent, propHistory, data.values, data.values.length, numOfPeriods);
+					if (maLen > 0) {
+							var smaObj = [];
+							data.indicators.push('sma' + '_' + numOfPeriods + '_' + propHistory);
+							for (var k = 0; k < maLen; k++) {
+									smaObj.push({ date: data.values[k].date, val: sma[k] });
+							}
+							data['sma' + '_' + numOfPeriods + '_' + propHistory] = smaObj;
+					}
+			},
+			f_normalize_ema: function f_normalize_ema(data, propHistory, numOfPeriods) {
+					var that = this;
+					//var idxCurrent = data.values.length - 1;
+					var idxCurrent = 0;
+					var sma = [];
+					var maLen = that.f_ema(sma, idxCurrent, propHistory, data.values, data.values.length, numOfPeriods);
+					if (maLen > 0) {
+							var smaObj = [];
+							data.indicators.push('ema' + '_' + numOfPeriods + '_' + propHistory);
+							for (var k = 0; k < maLen; k++) {
+									smaObj.push({ date: data.values[k].date, val: sma[k] });
+							}
+							data['ema' + '_' + numOfPeriods + '_' + propHistory] = smaObj;
+					}
+			},
+			f_build_indicator_html: function f_build_indicator_html(data, propHistory) {
+					if (!data['' + propHistory] || !data['' + propHistory].length) {
+							return;
+					}
+					//console.log('f_build_indicator_html', `propHistory ${propHistory}`);
+					//console.log(data[`${propHistory}`]);
+					var len = data.values.length > data['' + propHistory].length ? data['' + propHistory].length : data.values.length;
+					var smaObj = [];
+					data.indicators.push('' + propHistory);
+					for (var i = 0; i < len; i++) {
+							smaObj.push({ date: data.values[i].date, val: data['' + propHistory][len - i - 1] });
+					}
+					data['' + propHistory] = smaObj;
+			},
+			f_build_indicators: function f_build_indicators(data, propHistory) {
+					if (!data['' + propHistory] || !data['' + propHistory].length) {
+							return;
+					}
+					//console.log('f_build_indicators', `propHistory ${propHistory}`);
+					var that = this;
+					for (var i = 0; i < data['' + propHistory].length; i++) {
+							that.f_build_indicator_html(data, data['' + propHistory][i]);
+					}
+			},
+			f_build_idx_color_html: function f_build_idx_color_html(data, propHistory) {
+					console.log('f_build_idx_color_html', 'propHistory ' + propHistory);
+					if (!data['' + propHistory] || !data['' + propHistory].length) {
+							return;
+					}
+					var that = this;
+					console.log(data['' + propHistory]);
+					var len = data.values.length;
+					var smaObj = that.f_convertIdxsBuffToIdxsChart(len, data['' + propHistory]);
+					data.idxsBoldBuild.push('' + propHistory);
+					data['' + propHistory] = smaObj;
+			},
+			f_build_idxs_color: function f_build_idxs_color(data, propHistory) {
+					console.log('f_build_idxs_color', 'propHistory ' + propHistory);
+					if (!data['' + propHistory] || !data['' + propHistory].length) {
+							return;
+					}
+					var that = this;
+					for (var i = 0; i < data['' + propHistory].length; i++) {
+							that.f_build_idx_color_html(data, data['' + propHistory][i]);
+					}
 			},
 			f_strokeWidth: function f_strokeWidth(d, i) {
 					if (d.n3 - d.n2 < 0.01) return 10000 * (d.n3 - d.n2);
@@ -423,9 +1297,51 @@
 					if (d.n3 - d.n2 > 100000) return 0.0001 * (d.n3 - d.n2);
 					return d.n3 - d.n2;
 			},
+			f_deepKeylevel: function f_deepKeylevel(d, i) {
+					var pipValue = 0.0001;
+					if ((d.n3 - d.n1) / pipValue > 50) return (d.n3 - d.n1) / 10;
+					if ((d.n3 - d.n1) / pipValue > 20) return (d.n3 - d.n1) / 5;
+					if ((d.n3 - d.n1) / pipValue > 10) return (d.n3 - d.n1) / 2;
+					return (d.n3 - d.n1) / 1;
+			},
+			f_2colors: function f_2colors(d, i) {
+					var colors = ["green", "red"];
+					return colors[i % 2];
+			},
+			f_barColor: function f_barColor(d, i, idxs) {
+					//if special index, fill with specific color
+					//replace .attr("fill", (d, i) => colorScale(isUpDay(d)))
+					var isUp = d.close >= d.open;
+					if (idxs && idxs.length && idxs.some(function (it) {
+							return it === i;
+					})) {
+							return isUp ? "blue" : "orange";
+					}
+					return isUp ? "green" : "red";
+			},
+			f_barColorBold: function f_barColorBold(d, k, propName) {
+					var isUp = d.close >= d.open;
+					if (!extentContext || !extentContext.data || !extentContext.data['' + propName] || !extentContext.data['' + propName].length) {
+							return isUp ? "green" : "red";
+					}
+					for (var i = 0; i < extentContext.data['' + propName].length; i++) {
+							var propHistory = extentContext.data['' + propName][i];
+							if (!extentContext.data['' + propHistory] || !extentContext.data['' + propHistory].length || !extentContext.data[propHistory + '_color'] || !extentContext.data[propHistory + '_color'].length || extentContext.data[propHistory + '_color'].length < 2) {
+									continue;
+							}
+							if (extentContext.data['' + propHistory].some(function (it) {
+									return it == k;
+							})) {
+									return isUp ? extentContext.data[propHistory + '_color'][1] : extentContext.data[propHistory + '_color'][0];
+							}
+					}
+					return isUp ? "green" : "red";
+			},
 			f_stroke: function f_stroke(d, i) {
-					if (i % 2 == 0) return "lightsalmon";
-					return "lightpink";
+					// Stephen Few - Show Me the Numbers Book
+					//      Orange     Pink       L Brown    Purple         
+					var colors = ["#faa43a", "lightpink", "#f17cb0", "#b2912f", "lightsalmon", "#b276b2"];
+					return colors[i % 6];
 			},
 			f_title: function f_title(d, i) {
 					return i + "#" + JSON.stringify(d);
@@ -531,6 +1447,16 @@
 	  }
 
 	  return target;
+	};
+
+	var toConsumableArray = function (arr) {
+	  if (Array.isArray(arr)) {
+	    for (var i = 0, arr2 = Array(arr.length); i < arr.length; i++) arr2[i] = arr[i];
+
+	    return arr2;
+	  } else {
+	    return Array.from(arr);
+	  }
 	};
 
 	/**
@@ -2176,13 +3102,13 @@
 		return my;
 	}
 
+	//declare var extentContext: any;
 	/**
 	 * Reusable Candle Stick Component
 	 *
 	 * @module
 	 */
 	function componentCandleSticks () {
-
 		/* Default Properties */
 		var width = 400;
 		var height = 400;
@@ -2193,6 +3119,7 @@
 		var colorScale = d3.scaleOrdinal().range(colors).domain([true, false]);
 		var candleWidth = 3;
 		var classed = "candleSticks";
+		//var len=154;var arr = [154.00000000,5.00000000,30.00000000];var arrNew = arr .map(function(val) {return (len - val - 1);});console.log(arrNew );
 
 		/**
 	  * Initialise Data and Scales
@@ -2201,7 +3128,7 @@
 	  * @param {Array} data - Chart data.
 	  */
 		function init(data) {
-			var tf = palette.f_normalize_tf(data);
+			var tf = palette.f_normalize_tf(data, 'candleSticks');
 			var maxDate = d3.max(data.values, function (d) {
 				return d.date;
 			});
@@ -2325,11 +3252,11 @@
 				var candlesSelect = seriesGroup.selectAll(".candle").data(function (d, i) {
 					return d.values;
 				});
-
+				//console.log('extentContext', extentContext);
 				var candles = candlesSelect.enter().append("g").classed("candle", true).attr("fill", function (d, i) {
-					return colorScale(isUpDay(d));
+					return palette.f_barColorBold(d, i, 'idxsBoldBuild');
 				}).attr("stroke", function (d, i) {
-					return colorScale(isUpDay(d));
+					return palette.f_barColorBold(d, i, 'idxsBoldBuild');
 				}).on("mouseover", function (d, i) {
 					dispatch.call("customValueMouseOver", this, d);
 				}).on("click", function (d, i) {
@@ -7443,9 +8370,12 @@
 	function chartCandlestickChart () {
 
 		/* Default Properties */
+		//(0,0) (left, top)
 		var svg = void 0;
 		var chart = void 0;
 		var classed = "candlestickChart";
+		var x0 = 200;
+		var y0 = 300;
 		var width = 400;
 		var height = 300;
 		var margin = { top: 20, right: 60, bottom: 40, left: 40 };
@@ -7472,7 +8402,8 @@
 		function init(data) {
 			chartW = width - (margin.left + margin.right);
 			chartH = height - (margin.top + margin.bottom);
-			var tf = palette.f_normalize_tf(data);
+			palette.f_init_global_var('data', data);
+			var tf = palette.f_normalize_tf(data, 'candlestickChart');
 			var maxDate = d3.max(data.values, function (d) {
 				return d.date;
 			});
@@ -7523,7 +8454,16 @@
 
 			yScale = d3.scaleLinear().domain(yDomain).range([chartH, 0]).nice();
 		}
-
+		function initLayers(chart, data) {
+			// Update the chart dimensions and add layer groups
+			var layers = ["key-level", "zoomArea", "candleSticks", "xAxis axis", "yAxis axis"];
+			var allLayers = [];
+			allLayers.push.apply(allLayers, layers);
+			allLayers.push.apply(allLayers, toConsumableArray(data.indicators));
+			chart.classed(classed, true).attr("transform", "translate(" + margin.left + "," + margin.top + ")").attr("width", x0 + chartW + margin.right).attr("height", y0 + chartH).selectAll("g").data(allLayers).enter().append("g").attr("class", function (d, i) {
+				return d;
+			});
+		}
 		/**
 	  * {
 	  "key": "Bitcoin",
@@ -7573,12 +8513,7 @@
 			} else {
 				chart = selection.select(".chart");
 			}
-
-			// Update the chart dimensions and add layer groups
-			var layers = ["key-level", "zoomArea", "candleSticks", "xAxis axis", "yAxis axis"];
-			chart.classed(classed, true).attr("transform", "translate(" + margin.left + "," + margin.top + ")").attr("width", chartW + margin.right).attr("height", chartH).selectAll("g").data(layers).enter().append("g").attr("class", function (d, i) {
-				return d;
-			});
+			var initLayer = false;
 
 			var line = d3.line().x(function (d, i) {
 				return d.x;
@@ -7589,53 +8524,38 @@
 			selection.each(function (data) {
 				// Initialise Data
 				init(data);
-
+				if (!initLayer) {
+					initLayers(chart, data);
+					initLayer = true;
+				}
 				//keylevel
-				// Line Function
-
-				var levelsSelect = chart.select(".key-level").selectAll(".level").data(data.levels);
-				var levelsPath = levelsSelect.enter().append("path").classed("level", true).attr("stroke", function (d, i) {
-					return palette.f_stroke(d, i);			}).attr("stroke-width", function (d, i) {
-					return palette.f_strokeWidth(d, i);
-				}).attr("d", function (d, i) {
-					return line([{ x: 0, y: yScale(d.n1) }, { x: chartW + margin.right, y: yScale(d.n1) }]);
-				}).append("title").text(function (d, i) {
-					return palette.f_title(d, i);
-				});
-				/*
-	   const levelsRect = levelsSelect.enter()
-	   		.append("rect")
-	   		.classed("level", true)
-	   		.attr("fill", "yellow")
-	   		.attr("x", (d, i) => 22)
-	   		.attr("y", (d, i) => {
-	   				return yScale(d.n3);
-	   		})
-	   		.attr("width", width)
-	   		.attr("height", (d, i) => {
-	   				console.log('ccc', d, i, yScale(d.n3), yScale(d.n2));
-	   				return yScale(yScale(d.n3) - yScale(d.n2));
-	   		});
-	   */
+				palette.f_keyLevel_graph(x0, y0, chart, "key-level", chartW + margin.right, data, xScale, yScale);
+				for (var k = 0; k < data.indicators.length; k++) {
+					var clsName = data.indicators[k];
+					if (data[clsName] && data[clsName].length) {
+						palette.f_sma_graph(x0, y0, chart, clsName, 3 + k, data[clsName], xScale, yScale);
+					}
+				}
+				//ema
 
 				// Candle Sticks
 				var candleSticks = component.candleSticks().width(chartW).height(chartH).colorScale(colorScale).xScale(xScale).yScale(yScale).dispatch(dispatch);
 
-				chart.select(".candleSticks").datum(data).call(candleSticks);
+				chart.select(".candleSticks").attr("transform", "translate(" + x0 + "," + y0 + ")").datum(data).call(candleSticks);
 
 				// X Axis
 				var xAxis = d3.axisBottom(xScale)
 				//.tickFormat((d, i) => " " + i + " ");
 				.tickFormat(d3.timeFormat("%Y-%m-%d %H:%M"));
 
-				chart.select(".xAxis").attr("transform", "translate(0," + chartH + ")").call(xAxis).selectAll("text")
+				chart.select(".xAxis").attr("transform", "translate(" + x0 + "," + (chartH + y0) + ")").call(xAxis).selectAll("text")
 				//.style("text-anchor", "end")
 				.attr("dx", "-.8em").attr("dy", ".15em").attr("transform", "rotate(-65)");
 
 				// Y Axis
 				var yAxis = d3.axisRight(yScale).tickFormat(d3.format(".4f"));
 
-				chart.select(".yAxis").attr("transform", "translate(" + (chartW + margin.right / 2) + ", 0)").call(yAxis);
+				chart.select(".yAxis").attr("transform", "translate(" + (chartW + x0 + margin.right / 2) + "," + y0 + ")").call(yAxis);
 
 				// Y Axis Labels
 				var yLabel = chart.select(".yAxis").selectAll(".yAxisLabel").data([data.key + " " + data.tf]);
@@ -7647,7 +8567,7 @@
 				// Experimental Brush
 				var brush = d3.brushX().extent([[0, 0], [chartW, chartH]]).on("brush start", brushStart).on("brush end", brushEnd);
 
-				chart.select(".zoomArea").call(brush);
+				chart.select(".zoomArea").attr("transform", "translate(" + x0 + "," + y0 + ")").call(brush);
 
 				function brushStart() {
 					// console.log(this);
@@ -7658,6 +8578,30 @@
 				}
 			});
 		}
+
+		/**
+	 * Width Getter / Setter
+	 *
+	 * @param {number} _v - Width in px.
+	 * @returns {*}
+	 */
+		my.x0 = function (_v) {
+			if (!arguments.length) return x0;
+			x0 = _v;
+			return this;
+		};
+
+		/**
+	 * Width Getter / Setter
+	 *
+	 * @param {number} _v - Width in px.
+	 * @returns {*}
+	 */
+		my.y0 = function (_v) {
+			if (!arguments.length) return y0;
+			y0 = _v;
+			return this;
+		};
 
 		/**
 	  * Width Getter / Setter
