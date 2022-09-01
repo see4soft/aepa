@@ -481,6 +481,7 @@
 			},
 			f_keyLevel_graph: function f_keyLevel_graph(x0, y0, chart, clsName, x1, data, xScale, yScale) {
 					var that = this;
+					var rMagin = 30;
 					var idxKeyLevel = [];
 					var gClass = chart.select("." + clsName).attr("transform", "translate(" + x0 + "," + y0 + ")").selectAll("." + clsName + "-indicators").data(data.levels);
 					var childClass = gClass.enter().append("path").classed(clsName + "-indicators", true).attr("opacity", function (d, i) {
@@ -497,27 +498,51 @@
 					})
 					//.attr("stroke-width", (d, i) => { return that.f_strokeWidth(d, i); })
 					.attr("d", function (d, i) {
-							return d3.line()([[0, yScale(d.n1 + that.f_deepKeylevel(d, i))], [x1, yScale(d.n1 + that.f_deepKeylevel(d, i))], [x1, yScale(d.n1 - that.f_deepKeylevel(d, i))], [0, yScale(d.n1 - that.f_deepKeylevel(d, i))]]);
+							return d3.line()([[0, yScale(d.n1 + that.f_deepKeylevel(d, i))], [x1 - rMagin, yScale(d.n1 + that.f_deepKeylevel(d, i))], [x1 - rMagin, yScale(d.n1 - that.f_deepKeylevel(d, i))], [0, yScale(d.n1 - that.f_deepKeylevel(d, i))]]);
 					}).append("title").text(function (d, i) {
 							return that.f_title(d, i);
 					});
-					console.log('333', idxKeyLevel);
 
-					var candleWidth = 3;
-					var gClass2 = chart.select("." + clsName).attr("transform", "translate(" + x0 + "," + y0 + ")").selectAll("." + clsName + "-indicators-top-bottom").data(idxKeyLevel);
-					var childClassTop = gClass2.enter().append("path").classed(clsName + "-indicators-top-bottom", true).attr("opacity", function (d, i) {
-							return d.n4 == 0 ? 0.6 : 0.6;
+					//alias keylevel
+					var aliasClass = gClass.enter().append("text").style("display", function (d, i) {
+							return d.alias ? null : "none";
+					}).classed(clsName + "-indicators-alias", true).attr("transform", function (d, i) {
+							return "translate(" + (x1 - rMagin / 1.2) + "," + yScale(d.n1 + that.f_deepKeylevel(d, i)) + ") rotate(20)";
+					})
+					//.attr("x", function (d, i) { return x1 - rMagin; })
+					//.attr("y", function (d, i) { return yScale(d.n1 + that.f_deepKeylevel(d, i)); })
+					.attr("dy", ".71em").attr("opacity", function (d, i) {
+							return 1.0;
 					}).attr("fill", function (d, i) {
-							return that.f_2colors(d, 1 + d.n4);
-					}).attr("stroke", function (d, i) {
-							return that.f_2colors(d, 1 + d.n4);
-					}).attr("stroke-width", function (d, i) {
-							return 2 * candleWidth;
-					}).attr("d", function (d, i) {
-							return d3.line()([[xScale(data.values[d.idx].date) - 3 * candleWidth, yScale(d.n1)], [xScale(data.values[d.idx].date) + 3 * candleWidth, yScale(d.n1)]]);
-					}).append("title").text(function (d, i) {
-							return that.f_title(d, i);
+							return that.f_stroke(d, i);
+					}).attr("text-anchor", "begin").text(function (d, i) {
+							return d.alias ? d.alias : "";
 					});
+
+					{
+							var candleWidth = 3;
+							var gClass2 = chart.select("." + clsName).attr("transform", "translate(" + x0 + "," + y0 + ")").selectAll("." + clsName + "-indicators-top-bottom").data(idxKeyLevel); //idx bold of keylevel, check idx convert  in code
+
+							var childClassTop = gClass2.enter().append("path").classed(clsName + "-indicators-top-bottom", true).attr("opacity", function (d, i) {
+									return d.n4 == 0 ? 0.6 : 0.6;
+							}).attr("fill", function (d, i) {
+									return that.f_2colors(d, 1 + d.n4);
+							}).attr("stroke", function (d, i) {
+									return that.f_2colors(d, 1 + d.n4);
+							}).attr("stroke-width", function (d, i) {
+									return 2 * candleWidth;
+							}).attr("d", function (d, i) {
+									//error here???
+									if (data.values[d.idx]) {
+											return d3.line()([[xScale(data.values[d.idx].date) - 3 * candleWidth, yScale(d.n1)], [xScale(data.values[d.idx].date) + 3 * candleWidth, yScale(d.n1)]]);
+									} else {
+											console.log('f_keyLevel_graph', 'ERROR idx ' + d.idx);
+									}
+									return null;
+							}).append("title").text(function (d, i) {
+									return that.f_title(d, i);
+							});
+					}
 			},
 			f_sma_graph: function f_sma_graph(x0, y0, chart, clsName, idx, values, xScale, yScale) {
 					console.log('f_sma_graph', 'clsName ' + clsName + ' idx ' + idx + ' values');
@@ -541,13 +566,12 @@
 					});
 
 					var emaClassTxt = chart.select("." + clsName).selectAll("." + clsName + "-indicators-label").data([clsName]);
-					var emaPathText = emaClassTxt.enter().append("text").classed(clsName + "-indicators-label", true)
-					//.attr("transform", "rotate(-90)")
-					.attr("x", function (d, i) {
-							return xScale(values[0].date);
-					}).attr("y", function (d, i) {
-							return yScale(values[0].val);
-					}).attr("dy", ".71em").attr("opacity", function (d, i) {
+					var emaPathText = emaClassTxt.enter().append("text").classed(clsName + "-indicators-label", true).attr("transform", function (d, i) {
+							return "translate(" + xScale(values[0].date) + "," + yScale(values[0].val) + ") rotate(70)";
+					})
+					//.attr("x", function (d, i) { return xScale(values[0].date); })
+					//.attr("y", function (d, i) { return yScale(values[0].val); })						
+					.attr("dy", ".71em").attr("opacity", function (d, i) {
 							return 0.688;
 					}).attr("fill", function (d, i) {
 							return that.f_stroke(d, idx);
@@ -1121,6 +1145,9 @@
 			f_normalize_tf: function f_normalize_tf(data, arg) {
 					var that = this;
 					console.log('f_normalize_tf', 'arg ' + arg);
+
+					//$.get('https://www.cloudflare.com/cdn-cgi/trace', function (outData) {console.log(outData);});
+
 					var PERIOD_MN1_IN_MILLISECONDS = 2419200000; //4 weeks
 					var PERIOD_W1_IN_MILLISECONDS = 604800000;
 					var PERIOD_D1_IN_MILLISECONDS = 86400000;
@@ -1157,10 +1184,14 @@
 									break;
 					}
 					// idx 0: current, bufflen - 1: past
+					var utc = new Date();
+					if (data['utc']) {
+							utc = new Date(data['utc'] * 1000);
+					}
 					data.values.forEach(function (d, i) {
 							data.values[i].idx = i;
 							if (i == 0) {
-									data.values[0].date = new Date();
+									data.values[0].date = utc;
 							} else {
 									data.values[i].date = new Date(data.values[0].date - i * tf);
 							}
