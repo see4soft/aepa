@@ -504,9 +504,9 @@
 					});
 
 					//alias keylevel
-					var aliasClass = gClass.enter().append("text").style("display", function (d, i) {
-							return d.alias ? null : "none";
-					}).classed(clsName + "-indicators-alias", true).attr("transform", function (d, i) {
+					var aliasClass = gClass.enter().append("text")
+					//.style("display", function (d, i) { return (d.alias ? null : "none"); })
+					.classed(clsName + "-indicators-alias", true).attr("transform", function (d, i) {
 							return "translate(" + (x1 - rMagin / 1.2) + "," + yScale(d.n1 + that.f_deepKeylevel(d, i)) + ") rotate(20)";
 					})
 					//.attr("x", function (d, i) { return x1 - rMagin; })
@@ -516,7 +516,7 @@
 					}).attr("fill", function (d, i) {
 							return that.f_stroke(d, i);
 					}).attr("text-anchor", "begin").text(function (d, i) {
-							return d.alias ? d.alias : "";
+							return d.alias ? d.alias + '_' + d.n1 : "" + d.n1;
 					});
 
 					{
