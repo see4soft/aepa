@@ -8448,7 +8448,29 @@
 			var dateDomain = [new Date(minDate - tf), new Date(maxDate + tf)];
 
 			// TODO: Use dataTransform() to calculate candle min/max?
-			var yDomain3 = [0, d3.max([d3.max(data.values, function (d) {
+			var maMin = data.values[0].low;
+			var maMax = data.values[0].high;
+			if (data["listOfIndicators"] && data["listOfIndicators"].length) {
+				for (var k = 0; k < data["listOfIndicators"].length; k++) {
+					var maLine = data["listOfIndicators"][k];
+					if (data[maLine] && data[maLine].length) {
+						maMin = d3.min([maMin, d3.min(data[maLine], function (d) {
+							return d.val;
+						})]);
+						maMax = d3.max([maMax, d3.max(data[maLine], function (d) {
+							return d.val;
+						})]);
+						//console.log('yDomain', maLine, maMin, maMax, d3.min(data[maLine], (d) => d.val), d3.max(data[maLine], (d) => d.val));
+					}
+				}
+			}
+			if (maMin <= 0.0) {
+				maMin = data.values[0].low;
+			}
+			if (maMax <= 0.0) {
+				maMax = data.values[0].low;
+			}
+			var yDomain3 = [0, d3.max([maMax, d3.max(data.values, function (d) {
 				return d.high;
 			}), d3.max(data.levels, function (d) {
 				return d.n1;
@@ -8457,7 +8479,7 @@
 			}), d3.max(data.levels, function (d) {
 				return d.n3;
 			})])];
-			var yDomain = [d3.min([d3.min(data.values, function (d) {
+			var yDomain = [d3.min([maMin, d3.min(data.values, function (d) {
 				return d.low;
 			}), d3.min(data.levels, function (d) {
 				return d.n1;
@@ -8465,7 +8487,7 @@
 				return d.n2;
 			}), d3.min(data.levels, function (d) {
 				return d.n3;
-			})]) * 0.999, d3.max([d3.max(data.values, function (d) {
+			})]) * 0.999, d3.max([maMax, d3.max(data.values, function (d) {
 				return d.high;
 			}), d3.max(data.levels, function (d) {
 				return d.n1;
@@ -8474,9 +8496,9 @@
 			}), d3.max(data.levels, function (d) {
 				return d.n3;
 			})]) * 1.001];
-			var yDomain2 = [d3.min([d3.min(data.values, function (d) {
+			var yDomain2 = [d3.min([maMin, d3.min(data.values, function (d) {
 				return d.low;
-			})]), d3.max([d3.max(data.values, function (d) {
+			})]), d3.max([maMax, d3.max(data.values, function (d) {
 				return d.high;
 			})])];
 
