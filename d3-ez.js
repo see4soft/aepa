@@ -491,7 +491,7 @@
 					}).attr("stroke", function (d, i) {
 							if (d.idxs && d.idxs.length > 0) {
 									for (var k = 0; k < d.idxs.length; k++) {
-											idxKeyLevel.push({ "n3": d.n3, "n1": d.n1, "n2": d.n2, "n4": d.n4, "idx": d.idxs[k] });
+											idxKeyLevel.push({ "n3": d.n3, "n1": d.n1, "n2": d.n2, "n4": d.n4, "idx": d.idxs[k], "k": k });
 									}
 							}
 							return that.f_stroke(d, i);
@@ -504,13 +504,10 @@
 					});
 
 					//alias keylevel
-					var aliasClass = gClass.enter().append("text")
-					//.style("display", function (d, i) { return (d.alias ? null : "none"); })
-					.classed(clsName + "-indicators-alias", true).attr("transform", function (d, i) {
-							if (d.alias) {
-									return "translate(" + (x1 - rMagin / 1.2) + "," + yScale(d.n1 + that.f_deepKeylevel(d, i)) + ") rotate(20)";
-							}
-							return "translate(" + (x1 - rMagin / 1.2) + "," + yScale(d.n1 + that.f_deepKeylevel(d, i)) + ") rotate(-10)";
+					var aliasClass = gClass.enter().append("text").style("display", function (d, i) {
+							return !d.alias ? null : "none";
+					}).classed(clsName + "-indicators-alias", true).attr("transform", function (d, i) {
+							return "translate(" + (x1 - rMagin) + "," + yScale(d.n1 + that.f_deepKeylevel(d, i)) + ") rotate(20)";
 					})
 					//.attr("x", function (d, i) { return x1 - rMagin; })
 					//.attr("y", function (d, i) { return yScale(d.n1 + that.f_deepKeylevel(d, i)); })
@@ -519,33 +516,45 @@
 					}).attr("fill", function (d, i) {
 							return that.f_stroke(d, i);
 					}).attr("text-anchor", "begin").text(function (d, i) {
-							return d.alias ? d.alias + '_' + d.n1 : "" + d.n1;
+							return d.alias ? d.alias : "1234";
 					});
 
-					{
-							var candleWidth = 3;
-							var gClass2 = chart.select("." + clsName).attr("transform", "translate(" + x0 + "," + y0 + ")").selectAll("." + clsName + "-indicators-top-bottom").data(idxKeyLevel); //idx bold of keylevel, check idx convert  in code
-
-							var childClassTop = gClass2.enter().append("path").classed(clsName + "-indicators-top-bottom", true).attr("opacity", function (d, i) {
+					var candleWidth = 3;
+					var gClass2 = chart.select("." + clsName).attr("transform", "translate(" + x0 + "," + y0 + ")").selectAll("." + clsName + "-indicators-top-bottom").data(idxKeyLevel); //idx bold of keylevel, check idx convert  in code
+					var childClassTop = gClass2.enter().append("path").classed(clsName + "-indicators-top-bottom", true).attr("opacity", function (d, i) {
+							if (d.k == 0) {
 									return d.n4 == 0 ? 0.6 : 0.6;
-							}).attr("fill", function (d, i) {
+							} else {
+									return d.n4 == 0 ? 0.4 : 0.4;
+							}
+					}).attr("fill", function (d, i) {
+							if (d.k == 0) {
 									return that.f_2colors(d, 1 + d.n4);
-							}).attr("stroke", function (d, i) {
+							} else {
+									return that.f_2colors_minor(d, 1 + d.n4);
+							}
+					}).attr("stroke", function (d, i) {
+							if (d.k == 0) {
 									return that.f_2colors(d, 1 + d.n4);
-							}).attr("stroke-width", function (d, i) {
+							} else {
+									return that.f_2colors_minor(d, 1 + d.n4);
+							}
+					}).attr("stroke-width", function (d, i) {
+							if (d.k == 0) {
 									return 2 * candleWidth;
-							}).attr("d", function (d, i) {
-									//error here???
-									if (data.values[d.idx]) {
-											return d3.line()([[xScale(data.values[d.idx].date) - 3 * candleWidth, yScale(d.n1)], [xScale(data.values[d.idx].date) + 3 * candleWidth, yScale(d.n1)]]);
-									} else {
-											console.log('f_keyLevel_graph', 'ERROR idx ' + d.idx);
-									}
-									return null;
-							}).append("title").text(function (d, i) {
-									return that.f_title(d, i);
-							});
-					}
+							} else {
+									return 1 * candleWidth;
+							}
+					}).attr("d", function (d, i) {
+							if (data.values[d.idx]) {
+									return d3.line()([[xScale(data.values[d.idx].date) - 3 * candleWidth, yScale(d.n1)], [xScale(data.values[d.idx].date) + 3 * candleWidth, yScale(d.n1)]]);
+							} else {
+									console.log('f_keyLevel_graph', 'ERROR idx ' + d.idx);
+							}
+							return null;
+					}).append("title").text(function (d, i) {
+							return that.f_title(d, i);
+					});
 			},
 			f_sma_graph: function f_sma_graph(x0, y0, chart, clsName, idx, values, xScale, yScale) {
 					console.log('f_sma_graph', 'clsName ' + clsName + ' idx ' + idx + ' values');
@@ -1340,6 +1349,10 @@
 			},
 			f_2colors: function f_2colors(d, i) {
 					var colors = ["green", "red"];
+					return colors[i % 2];
+			},
+			f_2colors_minor: function f_2colors_minor(d, i) {
+					var colors = ["aqua", "purple"];
 					return colors[i % 2];
 			},
 			f_barColor: function f_barColor(d, i, idxs) {
@@ -11006,7 +11019,7 @@
 			dataTransform: dataTransform,
 			base: base
 		};
-	}(); 
+	}();
 
 	return ez;
 
